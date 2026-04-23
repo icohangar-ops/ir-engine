@@ -1,0 +1,3 @@
+akshare
+google-generativeai
+tushare

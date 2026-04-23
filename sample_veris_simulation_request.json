@@ -1,0 +1,45 @@
+{
+  "company_profile": {
+    "name": "Atlas Critical Minerals",
+    "value_chain_position": "producer",
+    "geography_focus": "United States and Asia"
+  },
+  "financials": {
+    "revenue": 185000000,
+    "ebitda_margin": 0.18,
+    "cash_balance": 72000000,
+    "runway_months": 18
+  },
+  "commodity_context": {
+    "commodity_agents": {
+      "nickel": {
+        "provider": "tushare",
+        "contract": "NI2509.SHFE",
+        "price": 138500,
+        "unit": "RMB/metric ton"
+      },
+      "lithium_carbonate": {
+        "provider": "tushare",
+        "contract": "LC2509.GFEX",
+        "price": 91500,
+        "unit": "RMB/metric ton"
+      }
+    },
+    "tariff_watch": {
+      "federal_register": {
+        "documents": [
+          {
+            "title": "Section 301 action affecting critical mineral imports"
+          }
+        ]
+      },
+      "ustr": {
+        "items": [
+          {
+            "title": "USTR notice on manufacturing and critical supply chains"
+          }
+        ]
+      }
+    }
+  }
+}

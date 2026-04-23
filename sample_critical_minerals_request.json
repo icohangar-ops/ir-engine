@@ -1,0 +1,20 @@
+{
+  "history_days": 30,
+  "commodities": [
+    "copper",
+    "aluminum",
+    "zinc",
+    "nickel",
+    "cobalt",
+    "manganese",
+    "lithium_carbonate",
+    "gold",
+    "silver"
+  ],
+  "company_profile": {
+    "name": "Atlas Critical Minerals",
+    "value_chain_position": "producer",
+    "geography_focus": "United States and Asia",
+    "ir_focus": "Show investors how commodity prices and tariff changes affect margin leverage, realized pricing, and strategic positioning."
+  }
+}

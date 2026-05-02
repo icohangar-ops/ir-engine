@@ -1,5 +1,13 @@
 # Cubiczan Investor Relations, Metals Monitoring, and Veris Simulation Stack
 
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10+-3776AB?logo=python" alt="Python" />
+  <img src="https://img.shields.io/badge/FastAPI-009688?logo=fastapi" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/OpenAI-412991?logo=openai" alt="OpenAI" />
+  <img src="https://img.shields.io/badge/FRED-003366?logo=fred" alt="FRED" />
+  <img src="https://img.shields.io/badge/License-MIT-yellow" alt="MIT" />
+</p>
+
 This workspace now includes a structured set of services for:
 
 - investor-relations package generation

@@ -6,3 +6,6 @@ __pycache__/
 *.pyd
 .DS_Store
 
+# CHP session artifacts (local only)
+.chp_registry.json
+.chp/sessions/

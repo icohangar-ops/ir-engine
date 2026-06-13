@@ -18,6 +18,8 @@ import argparse
 from typing import Optional
 from urllib.request import Request, urlopen
 
+from cubiczan_resilience import resilient
+
 from critical_minerals_monitor import generate_critical_minerals_context
 from investor_relations_engine import generate_investor_relations_package
 from market_data_clients import fetch_market_context
@@ -108,6 +110,7 @@ def _extract_openai_output_text(payload: dict) -> str:
     return "\n".join(part for part in parts if part).strip()
 
 
+@resilient(timeout=120, max_attempts=3)
 def get_openai_response(user_message: str, model_name: Optional[str] = None) -> str:
     """Call the OpenAI Responses API with the Cubiczan system prompt."""
     if not OPENAI_API_KEY:
@@ -228,7 +231,27 @@ def run_server(port: int = 8000):
         return
 
     class CubiczanHandler(BaseHTTPRequestHandler):
+        def _is_authorized(self):
+            """Fail-closed inbound API-key check.
+
+            When CUBICZAN_SERVER_API_KEY is set, every request must present a
+            matching Authorization header (raw key or "Bearer <key>"). Returns
+            True if authorized; otherwise sends a 401 and returns False.
+            """
+            expected_key = os.environ.get("CUBICZAN_SERVER_API_KEY")
+            if not expected_key:
+                return True
+            provided = self.headers.get("Authorization", "")
+            if provided.startswith("Bearer "):
+                provided = provided[len("Bearer "):]
+            if provided != expected_key:
+                self.send_error(401, "Unauthorized")
+                return False
+            return True
+
         def do_POST(self):
+            if not self._is_authorized():
+                return
             if self.path == "/v1/chat/completions":
                 content_length = int(self.headers.get('Content-Length', 0))
                 body = json.loads(self.rfile.read(content_length))
@@ -357,6 +380,8 @@ def run_server(port: int = 8000):
                 self.send_error(404)
 
         def do_GET(self):
+            if not self._is_authorized():
+                return
             if self.path == "/health":
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")

@@ -7,6 +7,8 @@ from typing import Any, Dict, List, Optional
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
+from cubiczan_resilience import resilient
+
 
 FRED_BASE_URL = "https://api.stlouisfed.org/fred"
 ALPHA_VANTAGE_BASE_URL = "https://www.alphavantage.co/query"
@@ -39,6 +41,7 @@ SECTOR_BENCHMARKS = {
 }
 
 
+@resilient(timeout=20, max_attempts=3)
 def _get_json(url: str, timeout: int = 20) -> Dict[str, Any]:
     with urlopen(url, timeout=timeout) as response:
         return json.loads(response.read().decode("utf-8"))

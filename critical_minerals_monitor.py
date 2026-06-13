@@ -8,6 +8,8 @@ from typing import Any, Dict, List, Optional
 from urllib.parse import quote_plus
 from urllib.request import Request, urlopen
 
+from cubiczan_resilience import resilient
+
 
 FEDERAL_REGISTER_API = "https://www.federalregister.gov/api/v1/documents.json"
 USTR_LATEST_PRESS_RELEASES = "https://ustr.gov/callout/latest-press-releases"
@@ -102,16 +104,19 @@ CRITICAL_MINERALS = {
 }
 
 
+@resilient(timeout=20, max_attempts=3)
 def _get_text(url: str, timeout: int = 20) -> str:
     with urlopen(url, timeout=timeout) as response:
         return response.read().decode("utf-8", errors="ignore")
 
 
+@resilient(timeout=20, max_attempts=3)
 def _get_json(url: str, timeout: int = 20) -> Dict[str, Any]:
     with urlopen(url, timeout=timeout) as response:
         return json.loads(response.read().decode("utf-8"))
 
 
+@resilient(timeout=20, max_attempts=3)
 def _get_json_with_headers(url: str, headers: Dict[str, str], timeout: int = 20) -> Dict[str, Any]:
     request = Request(url, headers=headers)
     with urlopen(request, timeout=timeout) as response:

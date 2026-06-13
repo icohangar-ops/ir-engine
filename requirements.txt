@@ -1,3 +1,4 @@
 akshare
 google-generativeai
 tushare
+cubiczan-resilience @ git+https://github.com/icohangar-ops/cubiczan-resilience.git#subdirectory=python

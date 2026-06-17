@@ -4,8 +4,7 @@
 
 **Autonomous investor relations automation.** Generate IR packages, run scenario simulations, and monitor critical minerals — with a Veris-ready briefing layer for persistent scenario memory.
 
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Python](https://img.shields.io/badge/Python-3.9+-3776AB?logo=python)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 </div>
@@ -51,13 +50,18 @@ git clone https://github.com/icohangar-ops/ir-engine.git
 cd ir-engine
 pip install -r requirements.txt
 
-# Set API keys
+# Set API keys (populate only the providers you use)
 export OPENAI_API_KEY="your-key"
 export FRED_API_KEY="your-key"
 
-# Run the server
-uvicorn cubiczan_server:app --reload
+# Run the server (Python standard-library HTTP server)
+python cubiczan_server.py --port 8000
 ```
+
+The server is also available in two CLI modes: `python cubiczan_server.py --test`
+runs a sample inference query, and `python cubiczan_server.py --interactive` opens
+a chat session. Set `CUBICZAN_SERVER_API_KEY` to require an `Authorization` header
+on every request.
 
 ### Generate an IR Package
 
@@ -65,12 +69,24 @@ uvicorn cubiczan_server:app --reload
 curl -X POST http://localhost:8000/v1/investor-relations/generate \
   -H "Content-Type: application/json" \
   -d '{
-    "company": "Acme Mining",
-    "period": "Q1 2026",
-    "type": "quarterly_update",
-    "context": "Revenue up 15% YoY, critical minerals exposure"
+    "company": { "name": "Acme Mining", "sector": "Materials" },
+    "financials": {
+      "current_revenue": 8400000,
+      "prior_revenue": 6200000,
+      "cash_balance": 11600000,
+      "runway_months": 14
+    },
+    "metrics": {
+      "growth_score": 4.2,
+      "efficiency_score": 3.6,
+      "market_score": 4.4
+    }
   }'
 ```
+
+See [`sample_investor_relations_request.json`](./sample_investor_relations_request.json)
+for a complete payload, or `GET /v1/investor-relations/sample` to fetch it from a
+running server.
 
 ### Run a Scenario Simulation
 
@@ -78,11 +94,22 @@ curl -X POST http://localhost:8000/v1/investor-relations/generate \
 curl -X POST http://localhost:8000/v1/veris/simulate \
   -H "Content-Type: application/json" \
   -d '{
-    "scenario": "US-China tariff escalation on rare earths",
-    "impact": "25% tariff on imports from China",
-    "timeframe": "Q2-Q4 2026"
+    "company_profile": {
+      "name": "Atlas Critical Minerals",
+      "value_chain_position": "producer",
+      "geography_focus": "United States and Asia"
+    },
+    "financials": {
+      "revenue": 185000000,
+      "ebitda_margin": 0.18,
+      "cash_balance": 72000000,
+      "runway_months": 18
+    }
   }'
 ```
+
+See [`sample_veris_simulation_request.json`](./sample_veris_simulation_request.json)
+for a complete payload, or `GET /v1/veris/sample` to fetch it from a running server.
 
 ---
 
@@ -105,11 +132,12 @@ curl -X POST http://localhost:8000/v1/veris/simulate \
 
 ```
 ir-engine/
-├── cubiczan_server.py              # FastAPI entry point
+├── cubiczan_server.py              # HTTP API server entry point (stdlib http.server)
 ├── investor_relations_engine.py    # IR package generation
 ├── market_data_clients.py          # FRED, Alpha Vantage, etc.
 ├── critical_minerals_monitor.py    # Commodity + tariff monitoring
 ├── veris_simulation_engine.py      # Scenario simulation + briefing
+├── edgar_client.py                 # SEC EDGAR filings access
 ├── docs/
 │   ├── ARCHITECTURE.md
 │   ├── API.md

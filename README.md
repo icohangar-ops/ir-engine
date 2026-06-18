@@ -128,6 +128,78 @@ for a complete payload, or `GET /v1/veris/sample` to fetch it from a running ser
 
 ---
 
+## Airbyte Integration
+
+IR Engine includes an optional [Airbyte AI Agents SDK](https://docs.airbyte.com/ai-agents-sdk/) integration layer via `airbyte_providers.py`. This module provides:
+
+- **Async Airbyte-backed data fetching** as an alternative to the synchronous direct HTTP clients
+- **Graceful fallback** — if Airbyte is unavailable or a connector doesn't exist for a data source, the module falls back to the existing direct clients automatically
+- **MCP server configuration** — connect AI agents (Claude, Cursor, VS Code) to Airbyte-managed data sources
+- **Hybrid mode** — the recommended `fetch_hybrid_market_context()` function tries Airbyte first, then merges direct client results
+
+### Why Airbyte?
+
+Airbyte centralizes credential management, retry logic, and connector configuration. When Airbyte adds native connectors for financial data APIs (FRED, Alpha Vantage, SEC EDGAR), they can be wired in without changing calling code.
+
+### Current Status
+
+Airbyte's agent SDK ships ~48 connectors (CRM, billing, marketing, dev tools, analytics). **None of ir-engine's data sources have native Airbyte connectors yet.** The integration layer is a forward-looking adapter pattern:
+
+| Data Source | Airbyte Connector | Status |
+|-------------|------------------|--------|
+| FRED | — | Falls back to `market_data_clients` |
+| Alpha Vantage | — | Falls back to `market_data_clients` |
+| SEC EDGAR | — | Falls back to `edgar_client` |
+| Federal Register | — | Falls back to `critical_minerals_monitor` |
+| Zyla Labs / AKShare / Tushare | — | Specialized APIs, no equivalent |
+
+### Setup
+
+```bash
+# Install the SDK (included in requirements.txt)
+pip install airbyte-agent-sdk
+
+# Set credentials
+export AIRBYTE_CLIENT_ID=<your_client_id>
+export AIRBYTE_CLIENT_SECRET=<your_client_secret>
+```
+
+### Usage
+
+```python
+import asyncio
+from airbyte_providers import fetch_hybrid_market_context, is_airbyte_available
+
+# Check if Airbyte is configured
+if is_airbyte_available():
+    result = asyncio.run(fetch_hybrid_market_context(
+        company_symbol="AAPL",
+        benchmark_symbol="SPY",
+        sector="Technology",
+    ))
+    # result["data_source"] == "hybrid_airbyte_plus_direct"
+    # result["airbyte"] contains Airbyte metadata (warnings, connectors used)
+else:
+    # Falls back to direct clients automatically
+    from market_data_clients import fetch_market_context
+    result = fetch_market_context()
+```
+
+### MCP Server Setup
+
+Connect your AI agent to Airbyte-managed data sources:
+
+```bash
+# Claude Code
+claude mcp add --transport http airbyte-agent https://mcp.airbyte.ai/mcp
+
+# Or get the full config dict:
+from airbyte_providers import get_mcp_config
+print(get_mcp_config())
+```
+
+---
+
 ## Project Structure
 
 ```
@@ -138,6 +210,7 @@ ir-engine/
 ├── critical_minerals_monitor.py    # Commodity + tariff monitoring
 ├── veris_simulation_engine.py      # Scenario simulation + briefing
 ├── edgar_client.py                 # SEC EDGAR filings access
+├── airbyte_providers.py            # Airbyte SDK integration layer (optional)
 ├── docs/
 │   ├── ARCHITECTURE.md
 │   ├── API.md

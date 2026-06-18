@@ -1,4 +1,5 @@
 akshare
+airbyte-agent-sdk
 edgartools
 google-generativeai
 tushare

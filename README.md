@@ -222,6 +222,18 @@ ir-engine/
 
 ---
 
+## Evidence Matrix
+
+Every capability claim in this file is backed by [`evidence/matrix.yaml`](./evidence/matrix.yaml), and CI refuses builds while any row is unverifiable. Each row binds one claim to deterministic evidence — an executed test, an executable script, a pinned manifest field, or a hashed artifact. Verify locally:
+
+```bash
+python3 tools/verify_evidence_matrix.py
+```
+
+The verifier is a byte-identical, version-stamped copy of the canonical implementation from the [consensus-hardening-protocol](https://github.com/icohangar-ops/consensus-hardening-protocol) standard kit (`EVIDENCE_MATRIX_VERIFIER_VERSION = "1.0.0"`, vendored from kit commit `88067e4`).
+
+---
+
 ## License
 
 MIT. See [`LICENSE`](./LICENSE).

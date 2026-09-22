@@ -1,0 +1,231 @@
+# Evidence matrix — ir-engine (schema v1)
+#
+# Every capability claim stated in README.md and docs/ binds to deterministic
+# evidence: an executed test, an executable script (no network, hard timeout),
+# a pinned manifest field, or a hashed artifact. This matrix is verified
+# fail-closed by tools/verify_evidence_matrix.py on every PR and every push
+# to main; a red evidence-matrix job means the claims below are not
+# evidence-backed.
+#
+# Vendored verifier: byte-identical copy of the canonical kit implementation
+# icohangar-ops/consensus-hardening-protocol at commit 88067e4
+# (EVIDENCE_MATRIX_VERIFIER_VERSION = "1.0.0"); row C014 pins its bytes.
+schema_version: 1
+repo: ir-engine
+claims:
+  - id: C001
+    claim: >-
+      POST /v1/investor-relations/generate produces a full IR package:
+      investment evaluation, risk assessment, financial story, quarterly
+      update, pitch deck, and board materials.
+    source: "README.md#what-ir-engine-does"
+    evidence:
+      - type: test
+        ref: "tests/test_capability_claims.py::test_generate_investor_relations_package_from_sample"
+  - id: C002
+    claim: >-
+      POST /v1/investor-relations/market-context returns macro and market
+      context from FRED and Alpha Vantage, with provider failures surfaced
+      as warnings instead of errors.
+    source: "README.md#what-ir-engine-does"
+    evidence:
+      - type: script
+        ref: "scripts/verify_provider_surface.py"
+        timeout_seconds: 60
+  - id: C003
+    claim: >-
+      POST /v1/critical-minerals/context builds commodity and tariff context
+      with provider fallbacks across Zyla Labs, AKShare, and Tushare.
+    source: "README.md#what-ir-engine-does"
+    evidence:
+      - type: script
+        ref: "scripts/verify_provider_surface.py"
+        timeout_seconds: 60
+  - id: C004
+    claim: >-
+      Multi-provider fallback spans OpenAI, Gemini, FRED, Alpha Vantage,
+      Zyla Labs, AKShare, and Tushare.
+    source: "README.md#what-makes-this-different"
+    evidence:
+      - type: script
+        ref: "scripts/verify_server_surface.py"
+        timeout_seconds: 60
+      - type: script
+        ref: "scripts/verify_provider_surface.py"
+        timeout_seconds: 60
+  - id: C005
+    claim: >-
+      POST /v1/veris/simulate runs base, bull, bear, and stress scenario
+      analysis against a normalized Veris-ready input schema.
+    source: "README.md#what-ir-engine-does"
+    evidence:
+      - type: test
+        ref: "tests/test_capability_claims.py::test_veris_simulation_runs_four_scenarios"
+  - id: C006
+    claim: >-
+      POST /v1/veris/briefing builds a Veris-friendly context briefing for
+      persistent scenario memory, including a reusable prompt and memory
+      facts.
+    source: "README.md#what-ir-engine-does"
+    evidence:
+      - type: test
+        ref: "tests/test_capability_claims.py::test_veris_briefing_builds_prompt_and_memory_facts"
+  - id: C007
+    claim: >-
+      POST /v1/veris/export produces a Veris local-memory packet as a JSON
+      artifact plus a Markdown memory document, with the stress scenario as
+      the downside control case.
+    source: "README.md#what-ir-engine-does"
+    evidence:
+      - type: test
+        ref: "tests/test_capability_claims.py::test_veris_memory_packet_renders_markdown_artifact"
+      - type: artifact_hash
+        ref: "sample_veris_simulation_request.json"
+        sha256: "bd971ac486413939a7230013ccbca24c0e8292dec70e5a93892d86d1d8d683e6"
+  - id: C008
+    claim: >-
+      The server registers exactly the documented HTTP surface: the six
+      POST endpoints in the capability table plus GET /health and the three
+      GET sample endpoints.
+    source: "README.md#what-ir-engine-does"
+    evidence:
+      - type: script
+        ref: "scripts/verify_server_surface.py"
+        timeout_seconds: 60
+  - id: C009
+    claim: >-
+      Every endpoint documented in the API guide is implemented in the
+      server, and POST /v1/chat/completions honors per-request backend and
+      model overrides.
+    source: "docs/API.md"
+    evidence:
+      - type: script
+        ref: "scripts/verify_server_surface.py"
+        timeout_seconds: 60
+  - id: C010
+    claim: >-
+      The server runs on the Python standard library via python
+      cubiczan_server.py, offers --test and --interactive CLI modes, and
+      setting CUBICZAN_SERVER_API_KEY requires a matching Authorization
+      header on every request.
+    source: "README.md#quick-start"
+    evidence:
+      - type: script
+        ref: "scripts/verify_server_surface.py"
+        timeout_seconds: 60
+  - id: C011
+    claim: >-
+      Default inference configuration is CUBICZAN_INFERENCE_BACKEND=openai
+      with OPENAI_MODEL=gpt-5.2.
+    source: "docs/SETUP.md"
+    evidence:
+      - type: script
+        ref: "scripts/verify_server_surface.py"
+        timeout_seconds: 60
+  - id: C012
+    claim: >-
+      The Airbyte integration layer provides async fetching with graceful
+      fallback to the direct HTTP clients when the SDK or credentials are
+      absent, a hybrid fetch entry point, and MCP server configuration via
+      get_mcp_config.
+    source: "README.md#airbyte-integration"
+    evidence:
+      - type: test
+        ref: "tests/test_capability_claims.py::test_airbyte_graceful_fallback_without_sdk"
+      - type: test
+        ref: "tests/test_capability_claims.py::test_airbyte_hybrid_is_async_and_mcp_configured"
+  - id: C013
+    claim: >-
+      CHP governance is configured for the Finance domain with an R0 gate,
+      a foundation threshold of 100, and the CFO accuracy guard enabled.
+    source: "README.md#chp-governance"
+    evidence:
+      - type: manifest_field
+        ref: ".chp/R0_CONFIG.yaml:r0_gate.solvable"
+        equals: true
+      - type: manifest_field
+        ref: ".chp/R0_CONFIG.yaml:foundation.pass_threshold"
+        equals: 100
+      - type: manifest_field
+        ref: ".chp/R0_CONFIG.yaml:cfo_accuracy.enabled"
+        equals: true
+  - id: C014
+    claim: >-
+      Capability claims are machine-verified by a vendored verifier that is
+      byte-identical to the canonical standard-kit implementation at
+      consensus-hardening-protocol commit 88067e4, version 1.0.0, whose
+      bytes are pinned by this row's hash.
+    source: "README.md#evidence-matrix"
+    evidence:
+      - type: artifact_hash
+        ref: "tools/verify_evidence_matrix.py"
+        sha256: "238e02ab19d59e8b4dc2f6cc5f7ddf099f17a32079b1bc62aa9fcbafbfd297e8"
+  - id: C015
+    claim: >-
+      sample_investor_relations_request.json is the complete example IR
+      payload referenced by the quick-start curl example, with matching
+      financial inputs.
+    source: "README.md#generate-an-ir-package"
+    evidence:
+      - type: manifest_field
+        ref: "sample_investor_relations_request.json:financials.current_revenue"
+        equals: 8400000
+      - type: artifact_hash
+        ref: "sample_investor_relations_request.json"
+        sha256: "52fdd1b44d79b035dd60592834aff502e54d1d90fa3b35db623fccb83c96995f"
+  - id: C016
+    claim: >-
+      sample_veris_simulation_request.json is the complete example scenario
+      payload referenced by the quick-start curl example, with matching
+      financial inputs.
+    source: "README.md#run-a-scenario-simulation"
+    evidence:
+      - type: manifest_field
+        ref: "sample_veris_simulation_request.json:financials.revenue"
+        equals: 185000000
+      - type: artifact_hash
+        ref: "sample_veris_simulation_request.json"
+        sha256: "bd971ac486413939a7230013ccbca24c0e8292dec70e5a93892d86d1d8d683e6"
+  - id: C017
+    claim: >-
+      The investor relations engine layer converts structured company data
+      into investment evaluation, risk matrix, financial story, quarterly
+      update, pitch deck, and board materials outputs.
+    source: "docs/ARCHITECTURE.md"
+    evidence:
+      - type: test
+        ref: "tests/test_capability_claims.py::test_generate_investor_relations_package_from_sample"
+      - type: test
+        ref: "tests/test_capability_claims.py::test_validate_payload_flags_missing_required_fields"
+  - id: C018
+    claim: >-
+      The metals monitoring layer resolves commodity context in a
+      deterministic provider order: Zyla Labs first, then AKShare
+      snapshots, then Tushare futures.
+    source: "docs/ARCHITECTURE.md"
+    evidence:
+      - type: script
+        ref: "scripts/verify_provider_surface.py"
+        timeout_seconds: 60
+  - id: C019
+    claim: >-
+      The market context layer enriches outputs with FRED macro series,
+      Alpha Vantage company and benchmark context, sector-specific
+      benchmark mapping, and macro regime adjustments.
+    source: "docs/ARCHITECTURE.md"
+    evidence:
+      - type: script
+        ref: "scripts/verify_provider_surface.py"
+        timeout_seconds: 60
+      - type: test
+        ref: "tests/test_capability_claims.py::test_derive_macro_adjustments_applies_market_regime"
+  - id: C020
+    claim: >-
+      Provider coverage matches the provider notes: the four FRED macro
+      series, Zyla metals symbols for gold, silver, copper, aluminum, zinc,
+      and nickel, and Federal Register plus USTR tariff monitoring.
+    source: "docs/PROVIDERS.md"
+    evidence:
+      - type: script
+        ref: "scripts/verify_provider_surface.py"
+        timeout_seconds: 60

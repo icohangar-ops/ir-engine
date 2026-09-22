@@ -32,8 +32,10 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install pytest
-        run: python3 -m pip install pytest
+      - name: Install pytest and declared runtime dependency
+        run: |
+          python3 -m pip install pytest
+          python3 -m pip install "cubiczan-resilience @ git+https://github.com/icohangar-ops/cubiczan-resilience.git#subdirectory=python"
 
       - name: Run capability-claim tests
         run: python3 -m pytest tests/ -q
